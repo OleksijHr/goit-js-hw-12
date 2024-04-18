@@ -1,7 +1,7 @@
 // // тут уся логіка роботи
 
-import * as renderFunction from './js/render-functions.js';
-import * as pixabayApi from './js/pixabay-api.js';
+import {createMurkup} from './js/render-functions.js';
+import { searchObject } from './js/pixabay-api.js';
 
 
 // Описаний у документації
@@ -27,10 +27,13 @@ const lightboxGallery = new simpleLightbox('.gallery a', {
     captionDelay: 250,
     showCounter: false
 });
-let page = 1;
 
 searchForm.addEventListener("submit", handleSubmit);
 loadMoreBtn.addEventListener("click", loadMore);
+
+let page = 0;
+let pageLimit;
+let searchValue;
 
 function handleSubmit(event) {
     event.preventDefault();
@@ -44,14 +47,17 @@ function handleSubmit(event) {
         });
     }
     
+    objectList.textContent = "";
     loader.style.display = "flex";
-
-    const searchValue = event.currentTarget.elements.search.value.trim();
+    searchValue = event.currentTarget.elements.search.value.trim();
+    page = 1;
     
-    pixabayApi.searchObject(searchValue, page)
-    .then(data => {
+    searchObject(searchValue, page)
+        .then(data => {
+            console.log(data);
             if (!data.total) {
                 loader.style.display = "none";
+                loadMoreBtn.style.display = "none";
 
                 return iziToast.info({
                     message: "Don't found",
@@ -61,13 +67,9 @@ function handleSubmit(event) {
             }
 
             updateMurkup(data.hits);
-            searchForm.reset();
-
-            if ((page*15) <= data.totalHits) {
-                loadMoreBtn.style.display = "flex";
-            }
-
+            event.target.reset();
             loader.style.display = "none";
+            loadMoreBtn.style.display = "block";
         })
         .catch(error => {
             loader.style.display = "none";
@@ -82,36 +84,55 @@ function handleSubmit(event) {
 
 
 
-async function loadMore(searchValue) {
+async function loadMore() {  
+    
     loader.style.display = "flex";
+    
+    await searchObject(searchValue, page)
+        .then(data => {
 
-    page++;
+            updateMurkup(data.hits);
 
-    loadMoreBtn.disabled = true;
-
-    try {
-        const data = await pixabayApi.searchObject( page);
-        updateMurkup(data.hits);
-        
-        // loadMoreBtn.disabled = false;
-        loader.style.display = "none";
-
-        
-        if ((page * 15) > data.totalHits) {
-            loadMoreBtn.style.display = "none";
-        }
-    } catch (error) {
-        loader.style.display = "none";
-        return iziToast.error({
-            message: `${error.message}`,
-            backgroundColor: "red",
-            position: "topCenter"
+            const liElement = document.querySelector('li');
+            const { height } = liElement.getBoundingClientRect();
+            scrollVertical(height * 2, 0);
+            
+            searchForm.reset();
+            loader.style.display = "none";
+            loadMoreBtn.style.display = "block";
+            page = page + 1;
+            pageLimit = Math.floor(data.totalHits / 15);
+            
+            if (page > pageLimit) {
+                loadMoreBtn.style.display = "none";
+                iziToast.show({
+                    titleColor: 'white',
+                    message: `We're sorry, but you've reached the end of search results!`,
+                    messageColor: 'black',
+                    color: 'blue',
+                    position: 'topCenter',
+                    timeout: '5000',
+                });
+            }
         })
-    }
+        .catch(error => {
+            loader.style.display = "none";
+            return iziToast.error({
+                message: `${error.message}`,
+                backgroundColor: "red",
+                position: "topCenter"
+            })
+        })
 }
 
 
-function updateMurkup (hits) {
-        objectList.insertAdjacentHTML('beforeend', renderFunction.createMurkup(hits));
+function updateMurkup(hits) {
+        objectList.insertAdjacentHTML('beforeend', createMurkup(hits));
         lightboxGallery.refresh();
 }
+
+
+function scrollVertical(x = 0, y = 0) {
+  window.scrollBy({ top: x, left: y, behavior: 'smooth' });
+}
+
