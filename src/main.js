@@ -31,7 +31,7 @@ const lightboxGallery = new simpleLightbox('.gallery a', {
 searchForm.addEventListener("submit", handleSubmit);
 loadMoreBtn.addEventListener("click", loadMore);
 
-let page = 0;
+let page = 1;
 let pageLimit;
 let searchValue;
 
@@ -87,6 +87,8 @@ function handleSubmit(event) {
 async function loadMore() {  
     
     loader.style.display = "flex";
+    page = page + 1;
+    pageLimit = Math.floor(data.totalHits / 15);
     
     await searchObject(searchValue, page)
         .then(data => {
@@ -100,8 +102,6 @@ async function loadMore() {
             searchForm.reset();
             loader.style.display = "none";
             loadMoreBtn.style.display = "block";
-            page = page + 1;
-            pageLimit = Math.floor(data.totalHits / 15);
             
             if (page > pageLimit) {
                 loadMoreBtn.style.display = "none";
