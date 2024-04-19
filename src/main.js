@@ -54,7 +54,6 @@ function handleSubmit(event) {
     
     searchObject(searchValue, page)
         .then(data => {
-            console.log(data);
             if (!data.total) {
                 loader.style.display = "none";
                 loadMoreBtn.style.display = "none";
@@ -88,21 +87,22 @@ async function loadMore() {
     
     loader.style.display = "flex";
     page = page + 1;
-    pageLimit = Math.floor(data.totalHits / 15);
     
     await searchObject(searchValue, page)
-        .then(data => {
-
-            updateMurkup(data.hits);
-
-            const liElement = document.querySelector('li');
-            const { height } = liElement.getBoundingClientRect();
-            scrollVertical(height * 2, 0);
-            
-            searchForm.reset();
-            loader.style.display = "none";
-            loadMoreBtn.style.display = "block";
-            
+    .then(data => {
+        
+        updateMurkup(data.hits);
+        
+        const liElement = document.querySelector('li');
+        const { height } = liElement.getBoundingClientRect();
+        scrollVertical(height * 2, 0);
+        
+        searchForm.reset();
+        loader.style.display = "none";
+        loadMoreBtn.style.display = "block";
+        
+        pageLimit = Math.floor(data.totalHits / 15);
+        
             if (page > pageLimit) {
                 loadMoreBtn.style.display = "none";
                 iziToast.show({
