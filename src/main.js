@@ -103,7 +103,7 @@ async function loadMore() {
         
         pageLimit = Math.floor(data.totalHits / 15);
         
-            if (page > pageLimit) {
+            if (page >= pageLimit) {
                 loadMoreBtn.style.display = "none";
                 iziToast.show({
                     titleColor: 'white',
