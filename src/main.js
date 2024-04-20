@@ -53,8 +53,7 @@ function handleSubmit(event) {
     page = 1;
     
     searchObject(searchValue, page)
-        .then(data => {
-            
+        .then(data => {            
             if (!data.total) {
                 loader.style.display = "none";
                 loadMoreBtn.style.display = "none";
@@ -92,10 +91,8 @@ async function loadMore() {
     
     await searchObject(searchValue, page)
         .then(data => {
-        console.log("more", data.hits);
-        console.log("more data", data);
-        
-        updateMurkup(data.hits);
+
+            updateMurkup(data.hits);
         
         const liElement = document.querySelector('li');
         const { height } = liElement.getBoundingClientRect();
