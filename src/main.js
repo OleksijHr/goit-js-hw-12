@@ -31,7 +31,7 @@ const lightboxGallery = new simpleLightbox('.gallery a', {
 searchForm.addEventListener("submit", handleSubmit);
 loadMoreBtn.addEventListener("click", loadMore);
 
-let page = 196;
+let page = 1;
 let pageLimit;
 let searchValue;
 
@@ -50,26 +50,27 @@ function handleSubmit(event) {
     objectList.textContent = "";
     loader.style.display = "flex";
     searchValue = event.currentTarget.elements.search.value.trim();
-    page = 196;
+    page = 1;
     
     searchObject(searchValue, page)
         .then(data => {
-            console.log(data);
+            
             if (!data.total) {
                 loader.style.display = "none";
                 loadMoreBtn.style.display = "none";
-
+                
                 return iziToast.info({
                     message: "Don't found",
                     closeOnClick: true,
                     position: "topCenter"
                 })
             }
-
+            
             updateMurkup(data.hits);
             event.target.reset();
             loader.style.display = "none";
             loadMoreBtn.style.display = "block";
+            lastPage(data);
         })
         .catch(error => {
             loader.style.display = "none";
@@ -90,7 +91,9 @@ async function loadMore() {
     page = page + 1;
     
     await searchObject(searchValue, page)
-    .then(data => {
+        .then(data => {
+        console.log("more", data.hits);
+        console.log("more data", data);
         
         updateMurkup(data.hits);
         
@@ -98,14 +101,13 @@ async function loadMore() {
         const { height } = liElement.getBoundingClientRect();
         scrollVertical(height * 2, 0);
         
-        searchForm.reset();
         loader.style.display = "none";
         loadMoreBtn.style.display = "block";
         
-        pageLimit = Math.ceil(data.totalHits / 100);
+        pageLimit = Math.floor(data.totalHits / 15);
         
             if (page >= pageLimit) {
-                loadMoreBtn.style.display = "none";
+                lastPage(data);
                 iziToast.show({
                     titleColor: 'white',
                     message: `We're sorry, but you've reached the end of search results!`,
@@ -137,3 +139,8 @@ function scrollVertical(x = 0, y = 0) {
   window.scrollBy({ top: x, left: y, behavior: 'smooth' });
 }
 
+function lastPage(data) {
+    if (data.total <= 15) {
+                loadMoreBtn.style.display = "none";
+    }
+}
