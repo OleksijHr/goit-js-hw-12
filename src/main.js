@@ -53,7 +53,8 @@ function handleSubmit(event) {
     page = 1;
     
     searchObject(searchValue, page)
-        .then(data => {            
+        .then(data => {    
+            
             if (!data.total) {
                 loader.style.display = "none";
                 loadMoreBtn.style.display = "none";
@@ -89,7 +90,7 @@ async function loadMore() {
     loader.style.display = "flex";
     page = page + 1;
     
-    await searchObject(searchValue, page)
+        await searchObject(searchValue, page)
         .then(data => {
 
             updateMurkup(data.hits);
@@ -99,7 +100,6 @@ async function loadMore() {
         scrollVertical(height * 2, 0);
         
         loader.style.display = "none";
-        loadMoreBtn.style.display = "block";
         
         pageLimit = Math.floor(data.totalHits / 15);
         
@@ -137,7 +137,8 @@ function scrollVertical(x = 0, y = 0) {
 }
 
 function lastPage(data) {
-    if (data.total <= 15) {
-                loadMoreBtn.style.display = "none";
+    const resOfImages = Math.round(data.totalHits / page);
+    if (resOfImages <= 15) {
+        loadMoreBtn.style.display = "none";
     }
 }
